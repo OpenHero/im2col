@@ -13,7 +13,10 @@ cudaError_t im2colWithCuda(
 	const int channels,
 	const int height, const int width, const int ksize, const int pad,
 	const int stride,
-	float* data_col);
+	float* data_col,
+	const int num_kernels,
+	float* data_kernel,
+	float* data_ret);
 
 cudaError_t bu_im2colWithCuda(
 	const float* data_im,
@@ -21,6 +24,9 @@ cudaError_t bu_im2colWithCuda(
 	const int channels,
 	const int height, const int width, const int ksize, const int pad,
 	const int stride,
-	float* data_col);
+	float* data_col,
+	const int num_kernels,
+	float* data_kernel,
+	float* data_ret);
 
 #endif // __IM2COL_H__

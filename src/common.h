@@ -19,6 +19,7 @@
 #include "device_launch_parameters.h"
 #include <helper_functions.h>  // helper for shared functions common to CUDA Samples
 #include <helper_cuda.h>
+#include <cublas_v2.h>
 
 // CUDA: various checks for different function calls.
 #define CUDA_CHECK(condition) \

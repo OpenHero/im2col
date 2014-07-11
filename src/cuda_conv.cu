@@ -17,22 +17,43 @@ int main()
 	const int height = 256;
 	const int width = 256;
 	const int channels = 3;
-	const int batch_size = 128;//128;
+	const int batch_size = 32;//128;
 	const int ksize = 5; // 5-11
 	const int pad = 2; // 0-2
 	const int stride = 1; // 1
+	const int num_kernels = 64;
+
 
 	const int arraySize = height * width * channels * batch_size; //each bacth have 128 image, each image have 256*256 size and 3 channels
-	float *a = new float[arraySize];// = { 1, 2, 3, 4, 5 };
-	float *b = new float[arraySize];// = { 10, 20, 30, 40, 50 };
-	float *c = new float[arraySize];// = { 0 };
+	float *image = new float[arraySize];// = { 1, 2, 3, 4, 5 };
+
+	int height_col = (height + 2 * pad - ksize) / stride + 1;
+	int width_col = (width + 2 * pad - ksize) / stride + 1;
+	int colArraySize = height_col * width_col * channels * batch_size;
+	float *col1 = new float[colArraySize]();// = { 10, 20, 30, 40, 50 };
+	float *col2 = new float[colArraySize]();// = { 0 };
+	
+	const int kernelArraySize = num_kernels*ksize*ksize*channels;
+	float *data_kernel = new float[kernelArraySize];
+
+	const int resultArraySize = num_kernels * height * width;
+	float *r1 = new float[resultArraySize]();
+	float *r2 = new float[resultArraySize]();
 
 	//checkCudaErrors(cudaMallocManaged(&a, sizeof(float) *arraySize));
 	//checkCudaErrors(cudaMallocManaged(&b, sizeof(float) *arraySize));
 	//checkCudaErrors(cudaMallocManaged(&c, sizeof(float) *arraySize));
 	srand(2014);
-	init_data(a, arraySize);
-	init_data(b, arraySize);
+	init_data(image, arraySize);
+	init_data(data_kernel, kernelArraySize);
+
+
+		// Choose which GPU to run on, change this on a multi-GPU system.
+	cudaError_t cudaStatus = cudaSetDevice(0);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+		return 1;
+	}
 
 	// Add vectors in parallel.
 	//cudaError_t cudaStatus = addWithCuda(c, a, b, arraySize);
@@ -42,22 +63,19 @@ int main()
 	//}
 
 	// image to col
-	cudaError_t cudaStatus = im2colWithCuda(a, batch_size, channels, height, width, ksize, pad, stride, b);
+	 cudaStatus = im2colWithCuda(image, batch_size, channels, height, width, ksize, pad, stride, col1, num_kernels, data_kernel, r1);
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "im2colWithCuda failed!");
 		return 1;
 	}
 
-	cudaStatus = bu_im2colWithCuda(a, batch_size, channels, height, width, ksize, pad, stride, c);
+	cudaStatus = bu_im2colWithCuda(image, batch_size, channels, height, width, ksize, pad, stride, col2, num_kernels, data_kernel,r2);
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "im2colWithCuda failed!");
 		return 1;
 	}
-		
-	int height_col = (height + 2 * pad - ksize) / stride + 1;
-	int width_col = (width + 2 * pad - ksize) / stride + 1;
-	int col_size = height_col * width_col * channels * batch_size;
-	int ret = check_result(b,c, col_size);
+
+	int ret = check_result(r1,r2, resultArraySize);
 
 	printf("Error at %d.\n", ret);
 
@@ -69,12 +87,12 @@ int main()
 		return 1;
 	}
 
-	//cudaFree(a);
-	//cudaFree(b);
-	//cudaFree(c);
-	delete [] a;
-	delete [] b;
-	delete [] c;
+	delete [] image;
+	delete [] col1;
+	delete [] col2;
+	delete [] data_kernel;
+	delete [] r1;
+	delete [] r2;
 
 	return 0;
 }
