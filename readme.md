@@ -1,4 +1,4 @@
-###  Based on caffe im2col.Merge the loop into one kernel.
+###  Based on caffe im2col. Merge the loop into one kernel.
 
 On GTX640:
 
