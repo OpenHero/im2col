@@ -1,9 +1,10 @@
-zhao.kaiyong@gmail.com
-kyzhao@comp.hkbu.edu.hk
-http://www.comp.hkbu.edu.hk/~kyzhao/
-http://blog.csdn.net/openhero
+* 	created:	2014/07/11
+	created:	11:7:2014   16:22
+	author:		Zhao Kaiyong
+	email: zhao.kaiyong(at)gmail.com, kyzhao(at)comp.hkbu.edu.hk
+	website: http://www.comp.hkbu.edu.hk/~kyzhao/ , http://blog.csdn.net/openhero
 
-Based on caffe im2col.
+* Based on caffe im2col.
 Merge the loop into one kernel.
 On GTX640:
 image 256*256 with 3 channels
