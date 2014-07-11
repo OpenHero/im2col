@@ -1,3 +1,17 @@
+/********************************************************************
+	created:	2014/07/11
+	created:	11:7:2014   16:22
+	file base:	common
+	file ext:	h
+	author:		Zhao Kaiyong
+
+	zhao.kaiyong(at)gmail.com
+	kyzhao(at)comp.hkbu.edu.hk
+	http://www.comp.hkbu.edu.hk/~kyzhao/
+	http://blog.csdn.net/openhero
+	
+	purpose:	
+*********************************************************************/
 #ifndef __COMMON_H__
 #define __COMMON_H__
 #include <iostream>
