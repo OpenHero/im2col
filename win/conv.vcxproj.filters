@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{a714db55-b96b-4341-b9db-e4518e5cc0a0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\im2col.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\src\addwithcuda.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\bu_im2col.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\col2im.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\cuda_conv.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\im2col.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="readme.md" />
+  </ItemGroup>
+</Project>

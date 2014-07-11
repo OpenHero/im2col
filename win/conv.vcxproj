@@ -18,6 +18,20 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\src\addwithcuda.cu" />
+    <CudaCompile Include="..\src\bu_im2col.cu" />
+    <CudaCompile Include="..\src\col2im.cu" />
+    <CudaCompile Include="..\src\cuda_conv.cu" />
+    <CudaCompile Include="..\src\im2col.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\common.h" />
+    <ClInclude Include="..\src\im2col.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="readme.md" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3294F4FF-4CE2-409E-B6E7-86B0E6FE6D91}</ProjectGuid>
     <RootNamespace>conv</RootNamespace>
@@ -162,17 +176,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <CodeGeneration>compute_30,sm_30</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CudaCompile Include="addwithcuda.cu" />
-    <CudaCompile Include="bu_im2col.cu" />
-    <CudaCompile Include="col2im.cu" />
-    <CudaCompile Include="cuda_conv.cu" />
-    <CudaCompile Include="im2col.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="common.h" />
-    <ClInclude Include="im2col.hpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.0.targets" />
