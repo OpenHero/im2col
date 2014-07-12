@@ -159,7 +159,6 @@ cudaError_t im2colWithCuda(
 	checkCudaErrors(cudaMemcpy(dev_kernel, data_kernel, kernels_size * sizeof(float), cudaMemcpyHostToDevice));
 
 	// result
-	checkCudaErrors(cudaMemcpy(dev_image, data_im, images_size * sizeof(float), cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMalloc((void**)&dev_ret, result_size * sizeof(float)));
 
 

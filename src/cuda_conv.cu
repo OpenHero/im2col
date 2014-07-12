@@ -29,14 +29,14 @@ int main()
 
 	int height_col = (height + 2 * pad - ksize) / stride + 1;
 	int width_col = (width + 2 * pad - ksize) / stride + 1;
-	int colArraySize = height_col * width_col * channels * batch_size;
+	int colArraySize = height_col * width_col * channels *ksize*ksize* batch_size;
 	float *col1 = new float[colArraySize]();// = { 10, 20, 30, 40, 50 };
 	float *col2 = new float[colArraySize]();// = { 0 };
 	
 	const int kernelArraySize = num_kernels*ksize*ksize*channels;
 	float *data_kernel = new float[kernelArraySize];
 
-	const int resultArraySize = num_kernels * height * width;
+	const int resultArraySize = num_kernels * height_col * width_col*batch_size;
 	float *r1 = new float[resultArraySize]();
 	float *r2 = new float[resultArraySize]();
 

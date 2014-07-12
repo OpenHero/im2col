@@ -167,7 +167,6 @@ cudaError_t bu_im2colWithCuda(
 	checkCudaErrors(cudaMemcpy(dev_kernel, data_kernel, kernels_size * sizeof(float), cudaMemcpyHostToDevice));
 
 	// result
-	checkCudaErrors(cudaMemcpy(dev_image, data_im, images_size * sizeof(float), cudaMemcpyHostToDevice));
 	checkCudaErrors(cudaMalloc((void**)&dev_ret, result_size * sizeof(float)));
 
 
@@ -206,7 +205,7 @@ cudaError_t bu_im2colWithCuda(
 
 	sdkStopTimer(&timer);
 	double elapsedTimeInMs = sdkGetTimerValue(&timer);
-	printf("caffe is %fms\n", elapsedTimeInMs);
+	printf("OpenHero is %fms\n", elapsedTimeInMs);
 
 	// Copy output vector from GPU buffer to host memory.
 	checkCudaErrors(cudaMemcpy(data_col, dev_col, N * K *batch_size* sizeof(float), cudaMemcpyDeviceToHost));

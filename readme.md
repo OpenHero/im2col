@@ -5,6 +5,8 @@ On GTX640:
 ### The time show as below:
 * image 256*256 with 3 channels
 * batch size is 128
+* caffe is 26.952770ms
+* OpenHero is 5.608796ms
 
 --------------------------------------------------
 * author:		Zhao Kaiyong
