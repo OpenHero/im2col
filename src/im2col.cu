@@ -116,7 +116,6 @@ cudaError_t im2colWithCuda(
 	float *dev_kernel = 0;
 	float *dev_ret = 0;
 	cudaError_t cudaStatus;
-	StopWatchInterface *timer = NULL;
 
 	cublasHandle_t handle;
 
@@ -129,8 +128,6 @@ cudaError_t im2colWithCuda(
 		printf("cublasCreate returned error code %d, line(%d)\n", ret, __LINE__);
 		goto Error;
 	}
-
-	sdkCreateTimer(&timer);
 
 	int height_col = (height + 2 * pad - ksize) / stride + 1;
 	int width_col = (width + 2 * pad - ksize) / stride + 1;
@@ -165,11 +162,16 @@ cudaError_t im2colWithCuda(
 	const float alpha = 1.0f;
     const float beta  = 0.0f;
 
-	sdkStartTimer(&timer);
 	float* t_dev_image = dev_image;
 	float* t_dev_col = dev_col;
 	float* t_dev_kernel = dev_kernel;
 	float* t_dev_ret = data_ret;
+
+	cudaEvent_t start,stop;
+	checkCudaErrors(cudaEventCreate(&start));
+    checkCudaErrors(cudaEventCreate(&stop));
+	checkCudaErrors(cudaEventRecord(start, NULL));
+
 	for(int i = 0; i < batch_size; i++)
 	{
 		// Launch a kernel on the GPU with one thread for each element.
@@ -177,10 +179,10 @@ cudaError_t im2colWithCuda(
 
 
         //Perform warmup operation with cublas
-#if 0
+#if 1
 		ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
 			N , M,  K, &alpha,
-			t_dev_col, N, t_dev_kernel, K, &beta, t_dev_ret, N);
+			t_dev_kernel, N, t_dev_col, N, &beta, t_dev_ret, K);
 
 		if (ret != CUBLAS_STATUS_SUCCESS)
 		{
@@ -197,17 +199,18 @@ cudaError_t im2colWithCuda(
 
 	// Check for any errors launching the kernel
 	checkCudaErrors(cudaGetLastError());
+	checkCudaErrors(cudaEventRecord(stop, NULL));
 	
 	// cudaDeviceSynchronize waits for the kernel to finish, and returns
 	// any errors encountered during the launch.
-	cudaStatus = cudaDeviceSynchronize();
+	cudaStatus = cudaEventSynchronize(stop);
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching im2col Kernel!\n", cudaStatus);
 		goto Error;
 	}
 
-	sdkStopTimer(&timer);
-	double elapsedTimeInMs = sdkGetTimerValue(&timer);
+	float elapsedTimeInMs = 0.0f;
+	cudaEventElapsedTime(&elapsedTimeInMs, start, stop);
 	printf("caffe is %fms\n", elapsedTimeInMs);
 
 	// Copy output vector from GPU buffer to host memory.
@@ -225,7 +228,8 @@ Error:
 	cudaFree(dev_col);
 	cudaFree(dev_kernel);
 	cudaFree(dev_ret);
-	sdkDeleteTimer(&timer);
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
 
 
 	return cudaStatus;

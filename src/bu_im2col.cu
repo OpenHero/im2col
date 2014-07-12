@@ -199,13 +199,13 @@ cudaError_t bu_im2colWithCuda(
 	// any errors encountered during the launch.
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching im2col Kernel!\n", cudaStatus);
+		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching bu_im2col_gpu Kernel!\n", cudaStatus);
 		goto Error;
 	}
 
 	sdkStopTimer(&timer);
 	double elapsedTimeInMs = sdkGetTimerValue(&timer);
-	printf("OpenHero is %fms\n", elapsedTimeInMs);
+	printf("HKBU is %fms\n", elapsedTimeInMs);
 
 	// Copy output vector from GPU buffer to host memory.
 	checkCudaErrors(cudaMemcpy(data_col, dev_col, N * K *batch_size* sizeof(float), cudaMemcpyDeviceToHost));
