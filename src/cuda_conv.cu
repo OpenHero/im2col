@@ -70,8 +70,6 @@ int main()
 
 	printf("Error at %d.\n", ret);
 
-
-
 	checkCudaErrors(cudaFree(image));
 	checkCudaErrors(cudaFree(col1));
 	checkCudaErrors(cudaFree(col2));
