@@ -111,10 +111,6 @@ cudaError_t im2colWithCuda(
 	float* data_kernel,
 	float* data_ret)
 {
-	float *dev_image = 0;
-	float *dev_col = 0;
-	float *dev_kernel = 0;
-	float *dev_ret = 0;
 	cudaError_t cudaStatus;
 
 	cublasHandle_t handle;
@@ -144,27 +140,12 @@ cudaError_t im2colWithCuda(
 	int result_size = M * N * batch_size;
 
 
-	// col 
-	checkCudaErrors(cudaMalloc((void**)&dev_col, N * K *batch_size * sizeof(float)));
-	
-	// image
-	checkCudaErrors(cudaMalloc((void**)&dev_image, images_size* sizeof(float)));
-	checkCudaErrors(cudaMemcpy(dev_image, data_im, images_size * sizeof(float), cudaMemcpyHostToDevice));
-	
-	// kernel
-	checkCudaErrors(cudaMalloc((void**)&dev_kernel, kernels_size * sizeof(float)));
-	checkCudaErrors(cudaMemcpy(dev_kernel, data_kernel, kernels_size * sizeof(float), cudaMemcpyHostToDevice));
-
-	// result
-	checkCudaErrors(cudaMalloc((void**)&dev_ret, result_size * sizeof(float)));
-
-
 	const float alpha = 1.0f;
     const float beta  = 0.0f;
 
-	float* t_dev_image = dev_image;
-	float* t_dev_col = dev_col;
-	float* t_dev_kernel = dev_kernel;
+	const float* t_dev_image = data_im;
+	float* t_dev_col = data_col;
+	float* t_dev_kernel = data_kernel;
 	float* t_dev_ret = data_ret;
 
 	cudaEvent_t start,stop;
@@ -179,10 +160,10 @@ cudaError_t im2colWithCuda(
 
 
         //Perform warmup operation with cublas
-#if 1
+#if 0
 		ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
 			N , M,  K, &alpha,
-			t_dev_kernel, N, t_dev_col, N, &beta, t_dev_ret, K);
+			t_dev_kernel, N, t_dev_col, K, &beta, t_dev_ret, N);
 
 		if (ret != CUBLAS_STATUS_SUCCESS)
 		{
@@ -214,8 +195,6 @@ cudaError_t im2colWithCuda(
 	printf("caffe is %fms\n", elapsedTimeInMs);
 
 	// Copy output vector from GPU buffer to host memory.
-	checkCudaErrors(cudaMemcpy(data_col, dev_col, N * K *batch_size* sizeof(float), cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(data_ret, dev_ret, result_size * sizeof(float), cudaMemcpyDeviceToHost));
 	ret = cublasDestroy(handle);
 	if (ret != CUBLAS_STATUS_SUCCESS)
 	{
@@ -224,10 +203,6 @@ cudaError_t im2colWithCuda(
 	}
 Error:
 
-	cudaFree(dev_image);
-	cudaFree(dev_col);
-	cudaFree(dev_kernel);
-	cudaFree(dev_ret);
 	cudaEventDestroy(start);
 	cudaEventDestroy(stop);
 
