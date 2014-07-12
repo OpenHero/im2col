@@ -3,8 +3,15 @@
 On GTX640:
 
 ### The time show as below:
-* image 256*256 with 3 channels
-* batch size is 128
+* 	image 
+	const int height = 256;
+	const int width = 256;
+	const int channels = 3;
+	const int batch_size = 32;//128;
+	const int ksize = 5; // 5-11
+	const int pad = 2; // 0-2
+	const int stride = 1; // 1
+	const int num_kernels = 64;
 * caffe is 26.952770ms
 * OpenHero is 5.608796ms
 
