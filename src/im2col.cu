@@ -145,7 +145,6 @@ cudaError_t im2colWithCuda(
 
 	const float* t_dev_image = data_im;
 	float* t_dev_col = data_col;
-	float* t_dev_kernel = data_kernel;
 	float* t_dev_ret = data_ret;
 
 	cudaEvent_t start,stop;
@@ -160,10 +159,10 @@ cudaError_t im2colWithCuda(
 
 
         //Perform warmup operation with cublas
-#if 0
+#if 1
 		ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
 			N , M,  K, &alpha,
-			t_dev_kernel, N, t_dev_col, K, &beta, t_dev_ret, N);
+			data_kernel, N, t_dev_col, K, &beta, t_dev_ret, N);
 
 		if (ret != CUBLAS_STATUS_SUCCESS)
 		{

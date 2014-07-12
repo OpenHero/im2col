@@ -171,6 +171,27 @@ cudaError_t bu_im2colWithCuda(
 		data_kernel, Batch_N, data_col, K, &beta, data_ret, Batch_N);  
 #endif // 0
 
+	        //Perform warmup operation with cublas
+#if 1
+
+	float* t_dev_col = data_col;
+	float* t_dev_ret = data_ret;
+	for(int i = 0; i < batch_size; i++)
+	{
+		ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
+			N , M,  K, &alpha,
+			dev_kernel, N, t_dev_col, K, &beta, t_dev_ret, N);
+
+		if (ret != CUBLAS_STATUS_SUCCESS)
+		{
+			printf("cublasSgemm returned error code %d, line(%d)\n", ret, __LINE__);
+			goto Error;
+		}  
+#endif // 0
+		t_dev_col += col_size;
+		t_dev_ret += M*N;
+	}
+
 
 	if (ret != CUBLAS_STATUS_SUCCESS)
 	{
