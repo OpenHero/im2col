@@ -119,17 +119,19 @@ cudaError_t bu_im2colWithCuda(
 	float* data_kernel,
 	float* data_ret)
 {
-	float *dev_a = 0;
-	float *dev_c = 0;
-	float *dev_k = 0;
+	float *dev_image = 0;
+	float *dev_col = 0;
+	float *dev_kernel = 0;
 	float *dev_ret = 0;
 	cudaError_t cudaStatus;
 	StopWatchInterface *timer = NULL;
 
 	cublasHandle_t handle;
+
 	cublasStatus_t ret;
 
 	ret = cublasCreate(&handle);
+
 	if (ret != CUBLAS_STATUS_SUCCESS)
 	{
 		printf("cublasCreate returned error code %d, line(%d)\n", ret, __LINE__);
@@ -140,61 +142,50 @@ cudaError_t bu_im2colWithCuda(
 
 	int height_col = (height + 2 * pad - ksize) / stride + 1;
 	int width_col = (width + 2 * pad - ksize) / stride + 1;
-
+		
 	int K = ksize*ksize*channels;
 	int M = num_kernels;
-	int N = height_col*width_col*batch_size;
+	int N = height_col*width_col;
 
-	// Allocate GPU buffers for three vectors (two input, one output)    .
-	cudaStatus = cudaMalloc((void**)&dev_c, N * K * batch_size * sizeof(float));
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMalloc failed!");
-		goto Error;
-	}
+	int image_size = height * width * channels;
+	int images_size = image_size * batch_size;
 
-	cudaStatus = cudaMalloc((void**)&dev_a, height * width * channels * batch_size* sizeof(float));
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMalloc failed!");
-		goto Error;
-	}
+	int kernels_size = M * K;
+	int col_size = N*K;
+	int result_size = M * N * batch_size;
 
-	// Copy input vectors from host memory to GPU buffers.
-	cudaStatus = cudaMemcpy(dev_a, data_im, height * width * channels * batch_size * sizeof(float), cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMemcpy failed!");
-		goto Error;
-	}
-	cudaStatus = cudaMalloc((void**)&dev_k, num_kernels*ksize*ksize*channels * sizeof(float));
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMalloc failed!");
-		goto Error;
-	}
 
-	// Copy input vectors from host memory to GPU buffers.
-	cudaStatus = cudaMemcpy(dev_k, data_kernel, num_kernels*ksize*ksize*channels * sizeof(float), cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMemcpy failed!");
-		goto Error;
-	}
+	// col 
+	checkCudaErrors(cudaMalloc((void**)&dev_col, N * K *batch_size * sizeof(float)));
+	
+	// image
+	checkCudaErrors(cudaMalloc((void**)&dev_image, images_size* sizeof(float)));
+	checkCudaErrors(cudaMemcpy(dev_image, data_im, images_size * sizeof(float), cudaMemcpyHostToDevice));
+	
+	// kernel
+	checkCudaErrors(cudaMalloc((void**)&dev_kernel, kernels_size * sizeof(float)));
+	checkCudaErrors(cudaMemcpy(dev_kernel, data_kernel, kernels_size * sizeof(float), cudaMemcpyHostToDevice));
 
-	cudaStatus = cudaMalloc((void**)&dev_ret, num_kernels*height_col *width_col *batch_size * sizeof(float));
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMalloc failed!");
-		goto Error;
-	}
+	// result
+	checkCudaErrors(cudaMemcpy(dev_image, data_im, images_size * sizeof(float), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMalloc((void**)&dev_ret, result_size * sizeof(float)));
 
 
 	const float alpha = 1.0f;
-	const float beta  = 0.0f;
+    const float beta  = 0.0f;
+
 	int Batch_N = N * batch_size;
 	sdkStartTimer(&timer);
 	// Launch a kernel on the GPU with one thread for each element.
-	bu_im2col_gpu<float>(dev_a, channels, height, width, ksize, pad, stride, dev_c, batch_size);
+	bu_im2col_gpu<float>(dev_image, channels, height, width, ksize, pad, stride, dev_col, batch_size);
 	//Perform warmup operation with cublas
 
+#if 0
 	ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
 		Batch_N , M,  K, &alpha,
-		dev_c, Batch_N, dev_k, K, &beta, dev_ret, Batch_N);
+		dev_c, Batch_N, dev_k, K, &beta, dev_ret, Batch_N);  
+#endif // 0
+
 
 	if (ret != CUBLAS_STATUS_SUCCESS)
 	{
@@ -203,12 +194,8 @@ cudaError_t bu_im2colWithCuda(
 	}
 	
 	// Check for any errors launching the kernel
-	cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-		goto Error;
-	}
-
+	checkCudaErrors(cudaGetLastError());
+	
 	// cudaDeviceSynchronize waits for the kernel to finish, and returns
 	// any errors encountered during the launch.
 	cudaStatus = cudaDeviceSynchronize();
@@ -219,28 +206,25 @@ cudaError_t bu_im2colWithCuda(
 
 	sdkStopTimer(&timer);
 	double elapsedTimeInMs = sdkGetTimerValue(&timer);
-	printf("bu_im2col is %fms\n", elapsedTimeInMs);
+	printf("caffe is %fms\n", elapsedTimeInMs);
 
 	// Copy output vector from GPU buffer to host memory.
-	cudaStatus = cudaMemcpy(data_col, dev_c, N * K *batch_size* sizeof(float), cudaMemcpyDeviceToHost);
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMemcpy failed!");
+	checkCudaErrors(cudaMemcpy(data_col, dev_col, N * K *batch_size* sizeof(float), cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(data_ret, dev_ret, result_size * sizeof(float), cudaMemcpyDeviceToHost));
+	ret = cublasDestroy(handle);
+	if (ret != CUBLAS_STATUS_SUCCESS)
+	{
+		printf("cublasDestroy returned error code %d, line(%d)\n", ret, __LINE__);
 		goto Error;
 	}
-
-	cudaStatus = cudaMemcpy(data_ret, dev_ret, num_kernels*height_col *width_col *batch_size * sizeof(float), cudaMemcpyDeviceToHost);
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMemcpy failed!");
-		goto Error;
-	}
-	cublasDestroy(handle);
 Error:
 
-	cudaFree(dev_c);
-	cudaFree(dev_a);
-	cudaFree(dev_k);
+	cudaFree(dev_image);
+	cudaFree(dev_col);
+	cudaFree(dev_kernel);
 	cudaFree(dev_ret);
 	sdkDeleteTimer(&timer);
+
 
 	return cudaStatus;
 }

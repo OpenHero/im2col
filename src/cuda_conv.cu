@@ -75,7 +75,11 @@ int main()
 		return 1;
 	}
 
-	int ret = check_result(r1,r2, resultArraySize);
+	int ret = -1;
+	ret = check_result(col1,col2, resultArraySize);
+	printf("Im2col error at %d.\n", ret);
+
+	ret = check_result(r1,r2, resultArraySize);
 
 	printf("Error at %d.\n", ret);
 
