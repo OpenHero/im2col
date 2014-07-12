@@ -177,19 +177,6 @@ cudaError_t im2colWithCuda(
 
 
         //Perform warmup operation with cublas
-#if 0
-		ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
-			N , M,  K, &alpha,
-			t_dev_col, N, t_dev_kernel, K, &beta, t_dev_ret, N);
-
-		if (ret != CUBLAS_STATUS_SUCCESS)
-		{
-			printf("cublasSgemm returned error code %d, line(%d)\n", ret, __LINE__);
-			goto Error;
-		}  
-#endif // 0
-
-
 		t_dev_image += image_size;
 		t_dev_col += col_size;
 		t_dev_ret += M*N;
