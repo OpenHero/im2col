@@ -5,8 +5,6 @@ On GTX640:
 ### The time show as below:
 * image 256*256 with 3 channels
 * batch size is 128
-* caffe is 106.883766ms
-* bu_im2col is 22.095470ms
 
 --------------------------------------------------
 * author:		Zhao Kaiyong
