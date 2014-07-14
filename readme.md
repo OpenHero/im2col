@@ -12,8 +12,6 @@ On GTX640:
 	const int pad = 2; // 0-2
 	const int stride = 1; // 1
 	const int num_kernels = 64;
-* caffe is 26.952770ms
-* OpenHero is 5.608796ms
 
 --------------------------------------------------
 * author:		Zhao Kaiyong

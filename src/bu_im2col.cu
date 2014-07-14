@@ -15,9 +15,6 @@ Based on caffe im2col. Merge the loop into one kernel.
 On GTX640:
 image 256*256 with 3 channels
 batch size is 128
-The time show as below:
-caffe is 106.883766ms
-bu_im2col is 22.095470ms	
 *********************************************************************/
 #include "common.h"
 
@@ -46,12 +43,11 @@ __global__ void bu_im2col_gpu_kernel(
 			const Dtype* data_im_ptr = data_im;
 			data_im_ptr += batch_index* data_im_size + (channel_in * height + h_in) * width + w_in;
 
-			Dtype temp_ret = 0.0f;
 			for (int i = 0; i < ksize; ++i) {
 				for (int j = 0; j < ksize; ++j) {
 					int h = h_in + i;
 					int w = w_in + j;
-					temp_ret += (h >= 0 && w >= 0 && h < height && w < width) ?
+					*data_col_ptr = (h >= 0 && w >= 0 && h < height && w < width) ?
 						data_im_ptr[i * width + j]  : 0;
 					data_col_ptr += height_col * width_col;
 				}
