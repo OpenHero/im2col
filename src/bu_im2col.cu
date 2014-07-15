@@ -46,12 +46,11 @@ __global__ void bu_im2col_gpu_kernel(
 			const Dtype* data_im_ptr = data_im;
 			data_im_ptr += batch_index* data_im_size + (channel_in * height + h_in) * width + w_in;
 
-			Dtype temp_ret = 0.0f;
 			for (int i = 0; i < ksize; ++i) {
 				for (int j = 0; j < ksize; ++j) {
 					int h = h_in + i;
 					int w = w_in + j;
-					temp_ret += (h >= 0 && w >= 0 && h < height && w < width) ?
+					*data_col_ptr = (h >= 0 && w >= 0 && h < height && w < width) ?
 						data_im_ptr[i * width + j]  : 0;
 					data_col_ptr += height_col * width_col;
 				}
@@ -180,24 +179,28 @@ cudaError_t bu_im2colWithCuda(
 	{
 		ret = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
 			N , M,  K, &alpha,
-			dev_kernel, N, t_dev_col, K, &beta, t_dev_ret, N);
+			data_kernel, N, t_dev_col, K, &beta, t_dev_ret, N);
 
 		if (ret != CUBLAS_STATUS_SUCCESS)
 		{
 			printf("cublasSgemm returned error code %d, line(%d)\n", ret, __LINE__);
 			goto Error;
-		}  
-#endif // 0
+		}  	
 		t_dev_col += col_size;
 		t_dev_ret += M*N;
-	}
-
-
+	}	
 	if (ret != CUBLAS_STATUS_SUCCESS)
 	{
 		printf("cublasSgemm returned error code %d, line(%d)\n", ret, __LINE__);
 		goto Error;
 	}
+
+#endif // 0
+
+
+
+
+
 	
 	// Check for any errors launching the kernel
 	checkCudaErrors(cudaGetLastError());
